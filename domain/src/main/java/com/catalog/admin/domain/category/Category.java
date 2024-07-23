@@ -32,27 +32,12 @@ public class Category extends AggregateRoot<CategoryID> {
         this.deletedAt = aDeleteDate;
     }
 
-    public static Category newCategory(final String aName, final String aDescription, final boolean isActive){
-        final CategoryID id = CategoryID.unique();
-        final var now = Instant.now();
-        final var deletedAt = isActive ? null : now;
-        return new Category(id, aName, aDescription, isActive, now, now, deletedAt);
-    }
-
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    /**
-     * No DDD a entidade precisa saber se validar
-     */
-    @Override
-    public void validate(final ValidationHandler handler) {
-        new CategoryValidator(this, handler).validate();
     }
 
     public CategoryID getId() {
@@ -98,4 +83,39 @@ public class Category extends AggregateRoot<CategoryID> {
     public void setDeletedAt(Instant deletedAt) {
         this.deletedAt = deletedAt;
     }
+
+    public static Category newCategory(final String aName, final String aDescription, final boolean isActive){
+        final CategoryID id = CategoryID.unique();
+        final var now = Instant.now();
+        final var deletedAt = isActive ? null : now;
+        return new Category(id, aName, aDescription, isActive, now, now, deletedAt);
+    }
+
+    /**
+     * No DDD a entidade precisa saber se validar
+     */
+    @Override
+    public void validate(final ValidationHandler handler) {
+        new CategoryValidator(this, handler).validate();
+    }
+
+    public Category deactivate() {
+        if(getDeletedAt() == null) {
+            this.deletedAt = Instant.now();
+        }
+
+        this.isActive = false;
+        this.updatedAt = Instant.now();
+
+        return this;
+    }
+
+    public Category activate() {
+        this.deletedAt = null;
+        this.isActive = true;
+        this.updatedAt = Instant.now();
+
+        return this;
+    }
+
 }
