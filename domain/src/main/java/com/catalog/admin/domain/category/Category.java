@@ -1,10 +1,12 @@
 package com.catalog.admin.domain.category;
 
+import com.catalog.admin.domain.AggregateRoot;
+import com.catalog.admin.domain.validation.ValidationHandler;
+
 import java.time.Instant;
 import java.util.UUID;
 
-public class Category {
-    private String id;
+public class Category extends AggregateRoot<CategoryID> {
     private String description;
     private String name;
     private boolean isActive;
@@ -12,28 +14,28 @@ public class Category {
     private Instant updatedAt;
     private Instant deletedAt;
 
-    private Category(
-            final String id,
-            final String name,
-            final String description,
+    public Category(
+            final CategoryID anId,
+            final String aName,
+            final String aDescription,
             final boolean isActive,
-            final Instant createdAt,
-            final Instant updatedAt,
-            final Instant deletedAt
+            final Instant aCreationDate,
+            final Instant aUpdateDate,
+            final Instant aDeleteDate
     ) {
-        this.id = id;
-        this.description = description;
-        this.name = name;
+        super(anId);
+        this.name = aName;
+        this.description = aDescription;
         this.isActive = isActive;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.deletedAt = null;
+        this.createdAt = aCreationDate;
+        this.updatedAt = aUpdateDate;
+        this.deletedAt = aDeleteDate;
     }
 
-    public static Category newCategory(final String aName, final String aDescription, final boolean aIsActive){
-        final var id = UUID.randomUUID().toString();
+    public static Category newCategory(final String aName, final String aDescription, final boolean isActive){
+        final CategoryID id = CategoryID.unique();
         final var now = Instant.now();
-        return new Category(id, aName, aDescription, aIsActive, now, now, null);
+        return new Category(id, aName, aDescription, isActive, now, now, null);
     }
 
     public String getName() {
@@ -44,12 +46,16 @@ public class Category {
         this.name = name;
     }
 
-    public String getId() {
-        return id;
+    /**
+     * No DDD a entidade precisa saber se validar
+     */
+    @Override
+    public void validate(final ValidationHandler handler) {
+        new CategoryValidator(this, handler).validate();
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public CategoryID getId() {
+        return id;
     }
 
     public String getDescription() {
